@@ -34,9 +34,9 @@ void initProgram(){
   initDisplay(2,3,4);
   state=IDLE;
   timerStop();
-  /*setTime(0,0,20);
-  triggerAmarilla(0,0,15);
-  triggerRoja(0,0,5);*/
+  setTime(0,0,0);
+  triggerAmarilla(0,5,0);
+  /*triggerRoja(0,0,5);*/
 }
 long t0,t1;
 void setup(){

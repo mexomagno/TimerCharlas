@@ -7,6 +7,11 @@
 char botonpin[]={5,6,7};
 /* estado de los botonpin */
 unsigned char pressed[]={0,0,0};
+/* Tiempo de hold button */
+int t_hold=2000;
+/* Valor de verdad. Se configura tiempo de luz amarilla? */
+char amarillaconfig=0;
+/**************** METODOS */
 void initBotones(){
 	pinMode(botonpin[0],INPUT);
 	pinMode(botonpin[1],INPUT);
@@ -14,24 +19,49 @@ void initBotones(){
 }
 void checkBotones(){
 	char which=-1;
+	char action;
 	//revisar si alguno ha sido clickeado
 	for (char i=0;i<3;i++){
-		if (isClicked(i)){
+		if (action=isClicked(i)){
 			which=i;
 			break;
 		}
 	}
 	//ver cual fue clickeado
 	if (which!=-1){
+		if ((which==0) && (action==2) && (state==IDLE)){
+			//Se hizo hold en el boton MODE. Si se está en idle, hay que configurar el tiempo de la luz amarilla
+			amarillaconfig=1;
+			Serial.begin(9600);
+			Serial.println("HOLD del boton 0!!!");
+			Serial.end();
+		}
 		changeState(which);
 		doStuff(which);
 	}
 }
+/* isClicked(char boton)
+		Revisa si el boton boton ha sido presionado.
+	Valores de retorno:
+			0: si no se ha hecho click en el boton
+			1: si se hizo click en el boton
+			2: si se hizo hold en el boton 0 por t_hold milisegundos
+			*/
 char isClicked(char boton){
 	//leer boton
 	//si boton está apretado y no lo estaba antes
 	if ((getBit(PIND, botonpin[boton]))&& !(pressed[boton])){
 		pressed[boton]= 1;
+		/* ver si hace hold en el estado IDLE */
+		if ((boton == 0) && (state == IDLE)){
+			long t0=millis(),t1;
+			while ((getBit(PIND, botonpin[boton])) && (pressed[boton])){
+				t1=millis();
+				if (t1-t0>t_hold)
+					return 2;
+				delay(1);
+			}
+		}
 		return 1;
 	}
 	else if (!(getBit(PIND, botonpin[boton]))&& (pressed[boton]))
@@ -58,6 +88,8 @@ void changeState(char boton){
 			break;
 		case S2:
 			state=(boton == 0 ? IDLE : state);
+			if (state == IDLE)
+				amarillaconfig=0;
 			break;
 		case RUN:
 			state=(boton == 0 ? RUN : (boton == 1 ? PAUSE : IDLE));
@@ -68,14 +100,14 @@ void changeState(char boton){
 			if (boton == 2) setTime(0,0,0);
 			break;
 	}
-	Serial.begin(9600);
+	/*Serial.begin(9600);
 	Serial.print("boton: ");
 	Serial.print((int)boton);
 	Serial.print(", state: ");
 	char buff[50];
 	strcpy(buff, (state == IDLE ? "IDLE" : (state == RUN ? "RUN" : (state == H1 ? "H1" : (state == M1 ? "M1" : (state == M2 ? "M2" : (state == S1 ? "S1" : (state == S2 ? "S2" : "PAUSE"))))))));
 	Serial.println(buff);
-	Serial.end();
+	Serial.end();*/
 }
 void doStuff(char boton){
 	switch(state){
@@ -138,8 +170,14 @@ void doStuff(char boton){
 			break;
 	}
 	Serial.begin(9600);
-	Serial.print("t_current: ");
-	Serial.println(getTCurrent());
+	if (!amarillaconfig){
+		Serial.print("t_current: ");
+		Serial.println(getTCurrent());
+	}
+	else {
+		Serial.print("t_amarilla: ");
+		Serial.println(getTAmarilla());
+	}
 	Serial.end();
 }
 /* RESUMEN DE MÉTODOS 

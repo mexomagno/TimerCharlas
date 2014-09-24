@@ -73,10 +73,14 @@ ISR(TIMER1_COMPA_vect){
 		case S1:
 		case S2:
 			if (mitad_segundo){
+				if (amarillaconfig)
+					setSemaforo('x');
 				sendNumbers(state == H1 ? B00001111 : state == M1 ? B00010111 : state == M2 ? B00011011 : state == S1 ? B00011101 : B00011110);
 				dosPuntos(0);
 			}
 			else {
+				if (amarillaconfig)
+					setSemaforo('a');
 				sendNumbers(255);
 				dosPuntos(1);
 			}
@@ -114,16 +118,25 @@ ISR(TIMER1_COMPA_vect){
 }
 /* sendNumbers(mask)
 			Revisa el valor del tiempo y las luces de semáforo, y envía al display para dibujarlos.
-			mask es un byte que indica qué dígitos deben mostrarse. los cinco dígitos menos significantes
+			mask es un byte que indica qué dígitos deben mostrarse. los cinco dígitos menos significativos
 			simbolizan cada dígito. Ejemplo: 	B00000001 indica que sólo el 5to dígito debe mostrarse
 												B00010000 indica que sólo el primer dígito debe mostrarse
 */
 void sendNumbers(char mask){
 	/* enviar tiempo */
 	char h,m,s;
-	h = (char)(t_current/3600);
-	m = (char)((t_current - h*3600)/60);
-	s = (char)(t_current - h*3600 - m*60);
+	int t_aux= amarillaconfig ? t_amarilla : t_current;
+	if (amarillaconfig){
+		pinMode(13,OUTPUT);
+		digitalWrite(13,HIGH);
+	} else {
+		pinMode(13,OUTPUT);
+		digitalWrite(13,LOW);
+	}
+
+	h = (char)(t_aux/3600);
+	m = (char)((t_aux - h*3600)/60);
+	s = (char)(t_aux - h*3600 - m*60);
 	setDigit(1,getBit(mask,4) ? (h) : 255);
 	dosPuntos(!mitad_segundo);
 	setDigit(2,getBit(mask,3) ? (m/10) : 255);
@@ -148,7 +161,10 @@ void clearDisplay(){
 }
 void setTime(char hr, char mins, char sec){
 	char h=constrain(hr,0,1), m=constrain(mins,0,59), s=constrain(sec,0,59);
-	t_current = t_begin = 3600*hr + 60*mins + s;
+	if (amarillaconfig)
+		t_amarilla = 3600*hr + 60*mins + s;
+	else
+		t_current = t_begin = 3600*hr + 60*mins + s;
 }
 /* triggerAmarilla y roja
 			Establece cuándo se prenderá el semáforo en luz amarilla.
@@ -156,21 +172,21 @@ void setTime(char hr, char mins, char sec){
 void triggerAmarilla(char hr, char mins, char sec){
 	char h=constrain(hr,0,1), m=constrain(mins,0,59), s=constrain(sec,0,59);
 	int aux = 3600*hr + 60*mins + s;
-	t_amarilla = aux <= t_begin ? aux : t_begin;
+	t_amarilla = aux ;//<= t_begin ? aux : t_begin;
 }
 void triggerRoja(char hr, char mins, char sec){
 	char h=constrain(hr,0,1), m=constrain(mins,0,59), s=constrain(sec,0,59);
 	int aux = 3600*hr + 60*mins + s;
-	t_roja = aux <= t_amarilla ? aux : t_amarilla;
+	t_roja = aux ;//<= t_amarilla ? aux : t_amarilla;
 }
 int getHours(){
-	return t_current/3600;
+	return (amarillaconfig ? t_amarilla : t_current)/3600;
 }
 int getMinutes(){
-	return (t_current - getHours()*3600)/60;
+	return ((amarillaconfig ? t_amarilla : t_current) - getHours()*3600)/60;
 }
 int getSeconds(){
-	return t_current - getHours()*3600 - getMinutes()*60;
+	return (amarillaconfig ? t_amarilla : t_current) - getHours()*3600 - getMinutes()*60;
 }
 void setHours(int h){
 	setTime((char)h,(char)getMinutes(),(char)getSeconds());
@@ -183,6 +199,9 @@ void setSeconds(int s){
 }
 int getTCurrent(){
 	return t_current;
+}
+int getTAmarilla(){
+	return t_amarilla;
 }
 /* timer */
 void timerStart(){
