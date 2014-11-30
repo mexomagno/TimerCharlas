@@ -36,7 +36,7 @@ void initProgram(){
   timerStop();
   setTime(0,0,0);
   triggerAmarilla(0,5,0);
-  /*triggerRoja(0,0,5);*/
+  triggerRoja(0,0,0);
 }
 long t0,t1;
 void setup(){
