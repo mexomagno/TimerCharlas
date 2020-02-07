@@ -11,13 +11,18 @@ Este es un proyecto personal que no busca ser nada grande. Se dio por dos cosas:
 </ol>
 El concepto básico es (con el gentil auspicio de <i>ms-paint</i>) como sigue:
 <img src="http://www.dcc.uchile.cl/~acastro/random/prototipos.png" alt="imagen_prototipo.png">
+
+
+## Ve el resultado funcionando:
+
+[![Ve el resultado del proyecto](https://img.youtube.com/vi/EdfVrNvKX3U/0.jpg)](https://www.youtube.com/watch?v=EdfVrNvKX3U)
+
 <h4><i>Hardware</i></h4>
 <p>Es un artefacto de aproximadamente 40x10 cm<sup>2</sup> de superficie y el grosor que tenga que tener, dependiendo de la circuitería.</p>
 El diseño de las partes se encuentra documentado, así como los posibles brainstorms que les dan nacimiento.
 <h4><i>Software</i></h4>
 <p>El display es totalmente controlado por un Arduino Pro Mini. El manejo de los segmentos y del programa en sí del Timer de Charlas está implementado mediante el uso de interrupciones de dos de los tres timers internos del Atmega328 (el timer1 y el timer2), para así obtener toda la precisión que el cristal de cuarzo de 16 [MHz] puede ofrecer. </p>
 <p>Si a alguien le es útil esto, por favor úselo.</p>
-
 
 <h4><strong>Prestaciones implementadas</strong></h4>
 <ul>
